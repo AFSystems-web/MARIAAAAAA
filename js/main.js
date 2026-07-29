@@ -13,6 +13,14 @@ const CONFIG = {
   photoDir: "photos/",
   photoExts: ["jpg", "jpeg", "png", "webp", "JPG", "JPEG", "PNG"],
 
+  /* пропорции фоток (ширина / высота) — заданы заранее, чтобы рамка
+     не «прыгала» после загрузки картинки. Если заменишь фотку на другую
+     по пропорциям — скрипт всё равно подстроится сам после загрузки. */
+  ratios: [
+    0.7500, 0.7500, 1.3333, 1.3333, 0.7500, 0.7500, 0.7500, 1.3333, 0.7500,
+    0.7500, 1.3333, 0.7500, 1.3333, 0.7500, 0.7500, 1.7778, 0.7500, 0.7500, 1.3333
+  ],
+
   /* подписи к фоткам — 19 штук, меняй как хочешь */
   captions: [
     "с этого всё начиналось ♥",
@@ -167,9 +175,11 @@ function buildSections() {
     sec.className = "sec sec-photo";
     sec.dataset.index = i;
 
+    const ar = CONFIG.ratios[i] || 1;
+
     sec.innerHTML = `
       <div class="card">
-        <div class="frame">
+        <div class="frame" style="--ar:${ar}">
           <img alt="фото ${n}" decoding="async"${i > 1 ? ' loading="lazy"' : ""}>
           <div class="placeholder">
             <span class="ph-heart">${heartSVG()}</span>
@@ -323,6 +333,10 @@ function clamp(v, a, b) { return Math.min(Math.max(v, a), b); }
 function runFinale() {
   if (state.finaleStarted) return;
   state.finaleStarted = true;
+
+  /* дальше листать нечего — отпускаем «прилипание», чтобы письмо
+     спокойно доскроллилось на любом, даже маленьком, экране */
+  document.documentElement.style.scrollSnapType = "none";
 
   /* если что-то всё-таки не успело долететь — досчитываем сразу, чтобы было 19/19 */
   const slots = [...document.querySelectorAll(".slot")];

@@ -13,8 +13,13 @@
   --slot:      #3d2a63;
   --gold:      #ffd166;
   --px: 4px;                 /* размер "пикселя" рамок */
-  --frame-max-h: calc(100vh - 290px);   /* запасной вариант для старых браузеров */
-  --frame-max-h: calc(100svh - 290px);  /* чтобы фотка + подпись влезали в экран */
+
+  /* безопасные зоны айфона: чёлка / Dynamic Island сверху, полоска жестов снизу */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --frame-max-h: calc(100vh - 275px);   /* запасной вариант для старых браузеров */
+  --frame-max-h: calc(100svh - 275px - var(--safe-top));  /* чтобы фотка + подпись влезали в экран */
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -24,7 +29,10 @@
 
 html{
   scroll-behavior:smooth;
-  scroll-snap-type:y proximity;   /* мягкое «прилипание» секций */
+  /* каждый свайп доводит фотку ровно в центр экрана и останавливается на ней */
+  scroll-snap-type:y mandatory;
+  /* чтобы «оттягивание» сверху не перезагружало страницу на телефоне */
+  overscroll-behavior-y:none;
 }
 
 body{
@@ -36,9 +44,16 @@ body{
   overflow-x:hidden;
   -webkit-font-smoothing:none;
   image-rendering:pixelated;
+  /* на телефоне: без серой вспышки по тапу и без случайного выделения текста */
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;
+  user-select:none;
 }
+/* текст поздравления оставляем выделяемым — вдруг захочет скопировать */
+.letter{-webkit-user-select:text; user-select:text}
 
-/* CRT-полоски */
+/* CRT-полоски. transform: translateZ(0) выносит слой на видеокарту —
+   иначе на телефоне он перерисовывается на каждый пиксель прокрутки */
 body::after{
   content:"";
   position:fixed; inset:0;
@@ -46,6 +61,7 @@ body::after{
   z-index:9000;
   background:repeating-linear-gradient(0deg, rgba(0,0,0,.20) 0 2px, transparent 2px 4px);
   opacity:.26;
+  transform:translateZ(0);
 }
 
 /* виньетка */
@@ -55,6 +71,7 @@ body::before{
   pointer-events:none;
   z-index:8999;
   background:radial-gradient(ellipse at center, transparent 52%, rgba(10,4,25,.62) 100%);
+  transform:translateZ(0);
 }
 
 /* ---------- ФОН: звёзды и парящие сердечки ---------- */
@@ -64,6 +81,7 @@ body::before{
   pointer-events:none;
   background:
     linear-gradient(180deg, #0f0820 0%, var(--bg) 45%, var(--bg-2) 100%);
+  transform:translateZ(0);
 }
 .star{
   position:absolute;
@@ -92,7 +110,7 @@ body::before{
   position:fixed;
   top:0; left:0; right:0;
   z-index:60;
-  padding:10px 12px 12px;
+  padding:calc(10px + var(--safe-top)) 12px 12px;
   display:flex; flex-direction:column; align-items:center; gap:4px;
   background:linear-gradient(180deg, rgba(15,8,32,.95) 60%, rgba(15,8,32,0) 100%);
   transition:opacity .5s steps(4,end), transform .5s steps(4,end);
@@ -125,7 +143,9 @@ body::before{
 
 /* ---------- КНОПКА ЗВУКА ---------- */
 .sound-btn{
-  position:fixed; right:10px; bottom:10px;
+  position:fixed;
+  right:calc(10px + env(safe-area-inset-right, 0px));
+  bottom:calc(10px + var(--safe-bottom));
   z-index:70;
   width:38px;height:38px;
   font-family:inherit; font-size:18px;
@@ -145,15 +165,14 @@ main{position:relative; z-index:10}
   min-height:100svh;
   display:flex; flex-direction:column;
   align-items:center; justify-content:center;
-  padding:110px 18px 60px;
+  padding:calc(104px + var(--safe-top)) 16px calc(56px + var(--safe-bottom));
   position:relative;
   scroll-snap-align:center;
+  scroll-snap-stop:always;   /* нельзя проскочить сразу несколько фоток */
 }
 
-.sec-intro, .sec-final{scroll-snap-align:start}
-
 /* ---------- ИНТРО ---------- */
-.sec-intro{padding-top:130px}
+.sec-intro{padding-top:calc(130px + var(--safe-top))}
 .intro-box{text-align:center; display:flex; flex-direction:column; align-items:center; gap:18px}
 
 .intro-heart{width:110px; color:var(--pink); animation:beat 1.1s steps(3,end) infinite}
@@ -202,12 +221,13 @@ main{position:relative; z-index:10}
 
 /* ---------- КАРТОЧКА С ФОТО ---------- */
 .card{
-  width:min(92vw, 360px);
-  display:flex; flex-direction:column; align-items:center; gap:14px;
-  opacity:0; transform:translateY(40px);
+  width:min(92vw, 420px);
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  opacity:0; transform:translateY(40px) translateZ(0);
+  backface-visibility:hidden;
   transition:opacity .5s steps(5,end), transform .5s steps(5,end);
 }
-.card.show{opacity:1; transform:translateY(0)}
+.card.show{opacity:1; transform:translateY(0) translateZ(0)}
 
 /* рамка подстраивается под пропорции фотки (--ar ставит скрипт),
    но не вылезает за экран по высоте */
@@ -267,7 +287,7 @@ main{position:relative; z-index:10}
 .sec-final{
   min-height:100vh;
   min-height:100svh;
-  padding:56px 18px 70px;
+  padding:calc(56px + var(--safe-top)) 16px calc(70px + var(--safe-bottom));
   justify-content:flex-start;
   gap:20px;
 }
@@ -342,6 +362,15 @@ main{position:relative; z-index:10}
 }
 
 /* ---------- МЕЛОЧИ ---------- */
+/* невысокие экраны (iPhone SE и подобные) — ужимаем финал, чтобы влез */
+@media (max-height:730px){
+  .sec-final{padding:calc(40px + var(--safe-top)) 16px calc(40px + var(--safe-bottom)); gap:14px}
+  .big-heart-wrap{width:min(42vw,150px); margin-top:0}
+  .letter{padding:18px 14px 20px; gap:12px}
+  .letter-text{font-size:15px; line-height:1.5}
+  .sign{font-size:22px; letter-spacing:3px}
+}
+
 /* на компьютере карточку можно и побольше */
 @media (min-width:700px) and (min-height:700px){
   .card{width:min(70vw,460px)}
