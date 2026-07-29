@@ -1,0 +1,356 @@
+/* ============================================================
+   Пиксельное поздравление — стили
+   Палитра
+   ============================================================ */
+:root{
+  --bg:        #150c2b;
+  --bg-2:      #241546;
+  --ink:       #ffe9d6;
+  --pink:      #ff4d6d;
+  --pink-lt:   #ff90a8;
+  --purple:    #6b3fa0;
+  --purple-dk: #3a2360;
+  --slot:      #3d2a63;
+  --gold:      #ffd166;
+  --px: 4px;                 /* размер "пикселя" рамок */
+  --frame-max-h: calc(100vh - 290px);   /* запасной вариант для старых браузеров */
+  --frame-max-h: calc(100svh - 290px);  /* чтобы фотка + подпись влезали в экран */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* блик на пиксельном сердце — общий для всех сердечек */
+.hl{fill:rgba(255,240,246,.72)}
+
+html{
+  scroll-behavior:smooth;
+  scroll-snap-type:y proximity;   /* мягкое «прилипание» секций */
+}
+
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pixelify Sans","Courier New",ui-monospace,monospace;
+  font-size:18px;
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:none;
+  image-rendering:pixelated;
+}
+
+/* CRT-полоски */
+body::after{
+  content:"";
+  position:fixed; inset:0;
+  pointer-events:none;
+  z-index:9000;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.20) 0 2px, transparent 2px 4px);
+  opacity:.26;
+}
+
+/* виньетка */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  pointer-events:none;
+  z-index:8999;
+  background:radial-gradient(ellipse at center, transparent 52%, rgba(10,4,25,.62) 100%);
+}
+
+/* ---------- ФОН: звёзды и парящие сердечки ---------- */
+.bg-layer{
+  position:fixed; inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg, #0f0820 0%, var(--bg) 45%, var(--bg-2) 100%);
+}
+.star{
+  position:absolute;
+  width:3px;height:3px;
+  background:var(--ink);
+  opacity:.7;
+  animation:twinkle 3s steps(2,end) infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.85}}
+
+.float-heart{
+  position:absolute;
+  bottom:-40px;
+  width:16px;
+  color:var(--purple);
+  opacity:.35;
+  animation:floatUp linear infinite;
+}
+@keyframes floatUp{
+  0%  {transform:translateY(0) translateX(0)}
+  100%{transform:translateY(-115vh) translateX(30px)}
+}
+
+/* ---------- HUD ---------- */
+.hud{
+  position:fixed;
+  top:0; left:0; right:0;
+  z-index:60;
+  padding:10px 12px 12px;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:linear-gradient(180deg, rgba(15,8,32,.95) 60%, rgba(15,8,32,0) 100%);
+  transition:opacity .5s steps(4,end), transform .5s steps(4,end);
+}
+.hud.hidden{opacity:0; transform:translateY(-30px); pointer-events:none}
+
+.hud-slots{
+  display:flex; flex-wrap:wrap; justify-content:center;
+  gap:5px;
+  max-width:240px;   /* даёт ровные ряды 10 + 9 */
+}
+.slot{
+  width:18px; height:15px;
+  color:var(--slot);
+  transition:color .15s steps(2,end);
+}
+.slot svg{display:block;width:100%;height:100%}
+.slot:not(.filled) .hl{fill:rgba(255,240,246,.12)}   /* пустые — без яркого блика */
+.slot.filled{
+  color:var(--pink);
+  animation:pop .35s steps(4,end);
+}
+@keyframes pop{
+  0%{transform:scale(.4)} 50%{transform:scale(1.6)} 100%{transform:scale(1)}
+}
+.hud-count{
+  font-size:14px; letter-spacing:2px; color:var(--pink-lt);
+  text-shadow:0 2px 0 #000;
+}
+
+/* ---------- КНОПКА ЗВУКА ---------- */
+.sound-btn{
+  position:fixed; right:10px; bottom:10px;
+  z-index:70;
+  width:38px;height:38px;
+  font-family:inherit; font-size:18px;
+  color:var(--ink); background:var(--purple-dk);
+  border:none; cursor:pointer;
+  box-shadow:0 -4px 0 0 var(--purple-dk), 0 4px 0 0 var(--purple-dk),
+             -4px 0 0 0 var(--purple-dk), 4px 0 0 0 var(--purple-dk),
+             0 0 0 4px #000 inset;
+}
+.sound-btn.off{color:#6b5a86}
+
+/* ---------- СЕКЦИИ ---------- */
+main{position:relative; z-index:10}
+
+.sec{
+  min-height:100vh;
+  min-height:100svh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:110px 18px 60px;
+  position:relative;
+  scroll-snap-align:center;
+}
+
+.sec-intro, .sec-final{scroll-snap-align:start}
+
+/* ---------- ИНТРО ---------- */
+.sec-intro{padding-top:130px}
+.intro-box{text-align:center; display:flex; flex-direction:column; align-items:center; gap:18px}
+
+.intro-heart{width:110px; color:var(--pink); animation:beat 1.1s steps(3,end) infinite}
+.intro-heart svg{display:block;width:100%;height:auto}
+.intro-heart .hl{fill:rgba(255,240,246,.78)}
+@keyframes beat{0%,100%{transform:scale(1)}45%{transform:scale(1.14)}}
+
+.title{
+  font-size:clamp(30px,9vw,58px);
+  line-height:1.05;
+  letter-spacing:3px;
+  color:var(--ink);
+  text-shadow:
+     4px 0 0 var(--purple-dk),  -4px 0 0 var(--purple-dk),
+     0 4px 0 var(--purple-dk),  0 -4px 0 var(--purple-dk),
+     0 8px 0 #000;
+}
+.title-name{color:var(--pink); }
+.sub{font-size:16px; color:var(--pink-lt); letter-spacing:2px}
+
+.pixel-btn{
+  margin-top:6px;
+  font-family:inherit; font-size:20px; letter-spacing:3px;
+  color:#1a1033; background:var(--gold);
+  border:none; padding:14px 26px; cursor:pointer;
+  box-shadow:0 -4px 0 0 var(--gold), 0 4px 0 0 var(--gold),
+             -4px 0 0 0 var(--gold), 4px 0 0 0 var(--gold),
+             0 10px 0 0 #a8791f;
+  transition:transform .08s steps(2,end), box-shadow .08s steps(2,end);
+}
+.pixel-btn:active{
+  transform:translateY(6px);
+  box-shadow:0 -4px 0 0 var(--gold), 0 4px 0 0 var(--gold),
+             -4px 0 0 0 var(--gold), 4px 0 0 0 var(--gold),
+             0 4px 0 0 #a8791f;
+}
+.pixel-btn.small{font-size:15px; padding:10px 18px}
+
+.scroll-hint{
+  position:absolute; bottom:26px; left:0; right:0;
+  text-align:center; font-size:13px; letter-spacing:2px;
+  color:var(--pink-lt); opacity:.85;
+  animation:bob 1.4s steps(2,end) infinite;
+}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* ---------- КАРТОЧКА С ФОТО ---------- */
+.card{
+  width:min(92vw, 360px);
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  opacity:0; transform:translateY(40px);
+  transition:opacity .5s steps(5,end), transform .5s steps(5,end);
+}
+.card.show{opacity:1; transform:translateY(0)}
+
+/* рамка подстраивается под пропорции фотки (--ar ставит скрипт),
+   но не вылезает за экран по высоте */
+.frame{
+  --ar:1;
+  width:min(100%, calc(var(--frame-max-h) * var(--ar)));
+  aspect-ratio:var(--ar);
+  background:var(--purple-dk);
+  padding:var(--px);
+  position:relative;
+  box-shadow:
+     0 calc(var(--px)*-1) 0 0 var(--ink),
+     0 var(--px) 0 0 var(--ink),
+     calc(var(--px)*-1) 0 0 0 var(--ink),
+     var(--px) 0 0 0 var(--ink),
+     0 12px 0 0 rgba(0,0,0,.45);
+}
+.frame img{
+  display:block; width:100%; height:100%;
+  object-fit:cover;
+  image-rendering:auto;
+}
+.frame.empty img{display:none}
+
+.placeholder{
+  display:none;
+  position:absolute; inset:var(--px);
+  align-items:center; justify-content:center; flex-direction:column; gap:10px;
+  background:
+    repeating-conic-gradient(var(--purple-dk) 0% 25%, #2c1a4d 0% 50%) 0 0/24px 24px;
+  color:var(--pink-lt); font-size:14px; letter-spacing:2px; text-align:center;
+}
+.frame.empty .placeholder{display:flex}
+.placeholder .ph-heart{width:40px;color:#4b3479}
+.placeholder .ph-heart svg{display:block;width:100%;height:auto}
+
+.caption{
+  font-size:19px; text-align:center; letter-spacing:1px;
+  color:var(--ink); text-shadow:0 3px 0 #000;
+}
+.num{font-size:13px; color:var(--pink-lt); letter-spacing:3px}
+
+/* ---------- ЛЕТЯЩЕЕ СЕРДЦЕ ---------- */
+.fx-layer{position:fixed; inset:0; z-index:80; pointer-events:none}
+.fly{
+  position:fixed;
+  width:26px; height:22px;
+  color:var(--pink);
+  transform:translate(-50%,-50%);
+  transition:left .85s cubic-bezier(.4,-0.35,.35,1.35),
+             top  .85s cubic-bezier(.4,-0.35,.35,1.35),
+             width .85s steps(6,end), height .85s steps(6,end);
+}
+.fly svg{display:block;width:100%;height:100%}
+
+/* ---------- ФИНАЛ ---------- */
+.sec-final{
+  min-height:100vh;
+  min-height:100svh;
+  padding:56px 18px 70px;
+  justify-content:flex-start;
+  gap:20px;
+}
+.final-inner{display:flex; flex-direction:column; align-items:center; gap:26px; width:100%}
+
+.big-heart-wrap{
+  position:relative;
+  width:min(52vw,220px);
+  aspect-ratio:12/10;
+  display:flex; align-items:center; justify-content:center;
+  margin-top:2vh;
+}
+.big-heart{
+  width:100%; color:var(--pink);
+  opacity:0; transform:scale(.2);
+}
+.big-heart svg{display:block;width:100%;height:auto}
+.big-heart .hl{fill:rgba(255,240,246,.78)}
+.big-heart.on{
+  opacity:1;
+  animation:bigPop .6s steps(6,end) forwards, beat 1.2s steps(3,end) .6s infinite;
+  filter:drop-shadow(0 0 18px rgba(255,77,109,.65));
+}
+@keyframes bigPop{
+  0%{transform:scale(.2)} 55%{transform:scale(1.25)} 100%{transform:scale(1)}
+}
+
+.flash{
+  position:absolute; inset:-40%;
+  background:radial-gradient(circle, #fff 0%, rgba(255,144,168,.6) 40%, transparent 70%);
+  opacity:0; pointer-events:none;
+}
+.flash.go{animation:flash .5s steps(5,end)}
+@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+
+.letter{
+  width:min(94vw, 640px);
+  background:rgba(26,16,51,.92);
+  padding:26px 22px 28px;
+  text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  opacity:0;
+  box-shadow:
+     0 calc(var(--px)*-1) 0 0 var(--pink),
+     0 var(--px) 0 0 var(--pink),
+     calc(var(--px)*-1) 0 0 0 var(--pink),
+     var(--px) 0 0 0 var(--pink);
+}
+.letter.on{opacity:1}
+.letter-text{font-size:clamp(16px,4.2vw,20px); line-height:1.6; letter-spacing:.5px}
+.letter-text .w{opacity:0}
+.letter-text .w.in{opacity:1; animation:wordIn .25s steps(3,end)}
+@keyframes wordIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.sign{
+  font-size:clamp(20px,6vw,30px); color:var(--gold); letter-spacing:4px;
+  opacity:0; text-shadow:0 4px 0 #000;
+}
+.sign.on{opacity:1; animation:wordIn .5s steps(4,end)}
+#againBtn{opacity:0; pointer-events:none}
+#againBtn.on{opacity:1; pointer-events:auto}
+
+/* конфетти-сердечки */
+.confetti{
+  position:fixed; top:-30px; width:14px; color:var(--pink-lt);
+  z-index:85; pointer-events:none;
+  animation:fall linear forwards;
+}
+.confetti svg{display:block;width:100%;height:auto}
+@keyframes fall{
+  0%{transform:translateY(0) rotate(0deg); opacity:1}
+  100%{transform:translateY(110vh) rotate(180deg); opacity:.15}
+}
+
+/* ---------- МЕЛОЧИ ---------- */
+/* на компьютере карточку можно и побольше */
+@media (min-width:700px) and (min-height:700px){
+  .card{width:min(70vw,460px)}
+}
+
+@media (max-width:420px){
+  .slot{width:15px;height:13px}
+  .hud-slots{gap:4px;max-width:200px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important; transition-duration:.01ms !important}
+}
