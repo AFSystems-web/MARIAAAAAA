@@ -13,12 +13,14 @@ const CONFIG = {
   photoDir: "photos/",
   photoExts: ["jpg", "jpeg", "png", "webp", "JPG", "JPEG", "PNG"],
 
-  /* пропорции фоток (ширина / высота) — заданы заранее, чтобы рамка
-     не «прыгала» после загрузки картинки. Если заменишь фотку на другую
-     по пропорциям — скрипт всё равно подстроится сам после загрузки. */
-  ratios: [
-    0.7500, 0.7500, 1.3333, 1.3333, 0.7500, 0.7500, 0.7500, 1.3333, 0.7500,
-    0.7500, 1.3333, 0.7500, 1.3333, 0.7500, 0.7500, 1.7778, 0.7500, 0.7500, 1.3333
+  /* размеры фоток в пикселях — браузер по ним сразу знает пропорции
+     и резервирует место, поэтому рамка не прыгает и не оставляет следов.
+     Если заменишь фотку — скрипт подставит настоящие размеры после загрузки. */
+  sizes: [
+    [900, 1200], [900, 1200], [1200, 900], [1200, 900], [900, 1200],
+    [900, 1200], [900, 1200], [1200, 900], [900, 1200], [900, 1200],
+    [1200, 900], [900, 1200], [1200, 900], [900, 1200], [900, 1200],
+    [1200, 675], [900, 1200], [900, 1200], [1200, 900]
   ],
 
   /* подписи к фоткам — 19 штук, меняй как хочешь */
@@ -175,12 +177,12 @@ function buildSections() {
     sec.className = "sec sec-photo";
     sec.dataset.index = i;
 
-    const ar = CONFIG.ratios[i] || 1;
+    const [pw, ph] = CONFIG.sizes[i] || [1000, 1000];
 
     sec.innerHTML = `
       <div class="card">
-        <div class="frame" style="--ar:${ar}">
-          <img alt="фото ${n}" decoding="async"${i > 1 ? ' loading="lazy"' : ""}>
+        <div class="frame">
+          <img alt="фото ${n}" width="${pw}" height="${ph}" decoding="async"${i > 1 ? ' loading="lazy"' : ""}>
           <div class="placeholder">
             <span class="ph-heart">${heartSVG()}</span>
             <span>ФОТО ${n}<br>положи сюда<br>photos/${n}.jpg</span>
@@ -209,9 +211,12 @@ function loadPhoto(img, n) {
   img.addEventListener("error", tryNext);
   img.addEventListener("load", () => {
     frame.classList.remove("empty");
-    /* рамка принимает пропорции фотки — вертикальные и горизонтальные не режутся */
-    if (img.naturalWidth && img.naturalHeight) {
-      frame.style.setProperty("--ar", (img.naturalWidth / img.naturalHeight).toFixed(4));
+    /* если фотку заменили на другую по пропорциям — подставляем настоящие размеры */
+    const aw = +img.getAttribute("width"), ah = +img.getAttribute("height");
+    if (img.naturalWidth && img.naturalHeight &&
+        aw * img.naturalHeight !== ah * img.naturalWidth) {
+      img.setAttribute("width", img.naturalWidth);
+      img.setAttribute("height", img.naturalHeight);
     }
   });
   tryNext();
